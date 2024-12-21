@@ -21,8 +21,8 @@
         left: 0;
         width: 100%;
         height: 100%;
-        width: auto;
-        height: auto;
+        /* width: auto;
+        height: auto; */
         z-index: -1;
     }
 
@@ -33,36 +33,16 @@
     muted="muted"></video>
 <script>
     
-console.log("hello g00n cave");
+console.log("hello countdown cave");
 
 
 const sexed = "/countdown_videos/hexnye2025-2.mp4"
 
 // const videos = ["https://cdn.glitch.me/1a0435e3-0e9f-4e51-b823-a9435ea5af56/0116_20231001_235500_01.mp4?v=1716442448540"];
-const videos = [
-  "countdown_videos/1.mp4",
-  "countdown_videos/16mm_Countdown_1945_D.D.Teoli_Jr._A.C..ia.mp4",
-  "countdown_videos/1983_12_31_2359_ABN2_Countdown_To_New_Year.mp4",
-  "countdown_videos/1984.03.09_MTV_Top_20_Video_Countdown_with_VJ_Mark_Goodman_March_9th_1984.mp4",
-//   "countdown_videos/25_Fun_Songs_For_Kids_Twinkle_Twinkle_Little_Star.mp4",
-  "countdown_videos/BBC_World_2002_Countdown.mp4",
-  "countdown_videos/Copyright_Free_Old_Film_Countdown__10_Seconds_GVuiftq3KsI.mp4",
-  "countdown_videos/Countdow1960.mp4",
-  "countdown_videos/Countdown_VHS.mp4",
-  "countdown_videos/GQtNumT05iM.mp4",
-  "countdown_videos/IMG_4521.mp4",
-  "countdown_videos/IMG_4522.mp4",
-  "countdown_videos/Lgbtq_VHS_Countdown_Clock.mp4",
-  "countdown_videos/Old_Film_Countdown_bRPQmaFQiwM.mp4",
-  "countdown_videos/Video.Guru_20200601_110528738.mp4",
-  "countdown_videos/Vintage_Film_Countdown_9v7panS17CY.mp4",
-  "countdown_videos/WXYZ_Detroit_December_31_1999_Countdown_to_Y2K_RG0kqGINMU0.mp4",
-  "countdown_videos/YlYfvRrel90.mp4",
-  "countdown_videos/aftellen.6.seconden.mp4",
-  "countdown_videos/km_20230504_1080p_60f_20230504_095509.mp4",
-  "countdown_videos/leadercountdowns.mp4",
-  "countdown_videos/hex-slides.mp4"
-];
+const videos = [];
+
+
+
 
 let playRate = 1;
 let playInOrder = false;
@@ -82,7 +62,7 @@ function playRandomVideo() {
     
     videoPlayer.setAttribute('src', randomVideo);
     videoPlayer.playbackRate = playRate;
-    videoPlayer.loop = true;
+    videoPlayer.loop = false;
     videoPlayer.play();
 
     // console.log(randomVideo);
@@ -94,12 +74,23 @@ function playRandomVideo() {
     }, { once: true });
 }
 
-setInterval(playRandomVideo, 60000);
-// videoPlayer.addEventListener('ended', playRandomVideo);
+// setInterval(playRandomVideo, 60000);
+videoPlayer.addEventListener('ended', playRandomVideo);
 
 
 
-playRandomVideo();
+
+// getting all the videos 
+fetch("/countdown_videos/?json").then(response => response.json()).then(files => {
+    for (file of files){
+        videos.push(`/countdown_videos/${encodeURIComponent(file.name)}`)
+    }
+
+    playRandomVideo();
+}) 
+
+
+
 
 
 
