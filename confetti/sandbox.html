@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<style>
+
+:root {
+  --bg: light-dark(#eee, #222);
+  --fg: light-dark(black, white);
+  color-scheme: light dark;
+}
+
+body {
+  font: 14px monospace;
+  background: var(--bg);
+  color: var(--fg);
+  margin: 0;
+}
+
+h2 {
+  margin: 0;
+}
+
+#previews {
+  margin: 0;
+  padding: 0;
+}
+
+#previews li {
+  border-bottom: 1px solid var(--fg);
+  list-style: none;
+  padding: 1em;
+}
+
+canvas {
+  background: white;
+  image-rendering: pixelated;
+  display: block;
+  margin: 0.5em auto;
+}
+
+@media (prefers-color-scheme: dark) {
+  canvas {
+    filter: invert(1);
+  }
+}
+
+</style>
+<template id=artTemplate>
+  <li>
+    <h2></h2>
+    <canvas></canvas>
+  </li>
+</template>
+<ul id=previews></ul>
+<script type=module>
+
+function floydSteinbergBW(imgData, errorMultiplier = 1.0) {
+  const { width: w, height: h, data } = imgData;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+
+        const old = data[i];
+        const newpixel = old > 127 ? 255 : 0;
+        const err = old - newpixel;
+
+        data[i+0] = newpixel;
+        data[i+1] = newpixel;
+        data[i+2] = newpixel;
+        data[i+3] = 255;
+
+        if ((x+1)<w) {
+          const j = ((y+0) * w + (x+1)) * 4;
+          data[j+0] += err * (7/16) * errorMultiplier;
+        }
+
+        if ((y+1)<h&&(x-1)>0) {
+          const j = ((y+1) * w + (x-1)) * 4;
+          data[j+0] += err * (3/16) * errorMultiplier;
+        }
+
+        if ((y+1)<h) {
+          const j = ((y+1) * w + x) * 4;
+          data[j+0] += err * (5/16) * errorMultiplier;
+        }
+
+        if ((y+1)<h&&(x+1)<w) {
+          const j = ((y+1) * w + (x+1)) * 4;
+          data[j+0] += err * (1/16) * errorMultiplier;
+        }
+      }
+    }
+}
+
+function findClosest(oldpixel, palArr) {
+    let maxDist = 766; // 255 * 3 + 1
+    let idx = 0;
+    for (let i = 0; i < palArr.length; i++) {
+        let dist = Math.abs(oldpixel[0] - palArr[i][0]) + Math.abs(oldpixel[1] - palArr[i][1]) + Math.abs(oldpixel[2] - palArr[i][2]);
+        if (dist < maxDist) {
+            maxDist = dist;
+            idx = i;
+        }
+    }
+    return palArr[idx];
+}
+
+function getQuantErr(oldpixel, newpixel) {
+    oldpixel[0] -= newpixel[0];
+    oldpixel[1] -= newpixel[1];
+    oldpixel[2] -= newpixel[2];
+    return oldpixel;
+}
+
+function applyErr(pixel, error, factor, multiplier) {
+    pixel[0] += error[0] * factor * multiplier;
+    pixel[1] += error[1] * factor * multiplier;
+    pixel[2] += error[2] * factor * multiplier;
+    return(pixel);
+}
+
+const base = new URL('./arts/', location);
+const arts = [];
+
+const midnightTime = +(new Date("January 1, 2025 00:00:00 EST"));
+
+function createArt(url) {
+  const el = artTemplate.content.children[0].cloneNode(true);
+  const name = el.querySelector('h2');
+  const canvas = el.querySelector('canvas');
+
+  const ret = { el, draw(){} }
+
+  name.textContent = url.href.slice(base.href.length);
+
+  fetch(url).then(async r => {
+    const text = await r.text();
+    const ctx = canvas.getContext('2d', {
+      willReadFrequently: true
+    });
+
+    const globals = {
+      ctx, canvas,
+      width: 0,
+      height: 0,
+      now: 0,
+      timeLeft: 0,
+      setHeight: null,
+      shader: null,
+    }
+    const fn = new Function(Object.keys(globals), text);
+
+    const init = (width, height) => {
+      Object.assign(globals, {
+        width, height,
+        setHeight(newHeight) {
+          newHeight = Math.floor(newHeight);
+          if (newHeight != height) {
+            init(width, newHeight);
+            ret.draw();
+            throw 'bail';
+          }
+        },
+        shader(f) {
+          const id = new ImageData(width, height);
+          const { data } = id;
+          for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+              const bri = 1-f(x/width, y/height);
+              const base = (y*width+x)*4;
+              data[base+0] = bri * 255;
+              data[base+1] = bri * 255;
+              data[base+2] = bri * 255;
+              data[base+3] = 255;
+            }
+          }
+          ctx.putImageData(id, 0, 0);
+        },
+      });
+
+      canvas.width = width;
+      canvas.height = height;
+
+      ret.draw = () => {
+        const now = Date.now();
+        globals.now = now / 1000;
+        globals.timeLeft = (midnightTime - now) / 1000;
+        ctx.clearRect(0, 0, width, height);
+        ctx.save();
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, width, height);
+        ctx.restore();
+        ctx.save();
+        try {
+          fn(...Object.values(globals));
+        } catch(e) {
+          if (e != 'bail')
+            throw e;
+        }
+        ctx.restore();
+
+        const id = ctx.getImageData(0, 0, width, height);
+        floydSteinbergBW(id, 1);
+        ctx.putImageData(id, 0, 0);
+
+      };
+
+    }
+    init(640, 100);
+
+    el.appendChild(canvas);
+  });
+
+  return ret;
+}
+
+async function loadArts() {
+  const files = await (await fetch(base)).json();
+  for (const { name } of files) {
+    const url = new URL(name, base);
+    const art = createArt(url);
+    arts.push(art);
+    previews.appendChild(art.el);
+  }
+};
+
+const start = async () => {
+  await loadArts();
+
+  const handleAnimationFrame = () => {
+    requestAnimationFrame(handleAnimationFrame);
+    for (const art of arts)
+      art.draw();
+  };
+  handleAnimationFrame();
+};
+
+start();
+
+</script>
