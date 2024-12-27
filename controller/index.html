@@ -48,18 +48,8 @@
     <button id="xButton">X = X Mode</button>
     <br>
     <br>
-    <br>
-        <p>O sets all as the same video and cycles through them</p>
-            <p>F sets them all fast</p>
-                <p>S sets them all slow</p>
-                <p>N sets them all normal speed</p>
-                <p>R refresh</p>
-                <p>B black</p>
-                <p>H change half the videos</p>
-                <p>X sex ed</p>
 
 
-    <button id="button">Refresh</button>
 
 
 <script>
@@ -68,10 +58,10 @@ console.log("hello g00n control");
 
 
 
-document.getElementById("button").onclick = function() {
-    reserve.broadcast({action:"switch"})
-    console.log("pressed")
-};
+// document.getElementById("button").onclick = function() {
+//     reserve.broadcast({action:"switch"})
+//     console.log("pressed")
+// };
 
 document.addEventListener('keydown', function(event) {
     if (event.key === 'f' || event.key === 'F') {
