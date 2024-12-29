@@ -38,7 +38,7 @@ canvas {
 
 @media (prefers-color-scheme: dark) {
   canvas {
-    filter: invert(1);
+    /* filter: invert(1); */
   }
 }
 
@@ -145,6 +145,7 @@ function createArt(url) {
       timeLeft: 0,
       setHeight: null,
       shader: null,
+      wrapLine: null,
     }
     const fn = new Function(Object.keys(globals), text);
 
@@ -173,6 +174,25 @@ function createArt(url) {
             }
           }
           ctx.putImageData(id, 0, 0);
+        },
+        wrapLine(text, availableWidth) {
+          const words = text.split(' ');
+          const ret = [];
+          let idx = 0;
+          while (idx < words.length) {
+            let nWords = words.length;
+            for (;;) {
+              const candidate = words.slice(idx, nWords+idx).join(' ');
+              const width = ctx.measureText(candidate).width;
+              if (nWords <= 1 || width < availableWidth) {
+                ret.push(candidate);
+                break;
+              }
+              nWords--;
+            }
+            idx += nWords;
+          }
+          return ret;
         },
       });
 
