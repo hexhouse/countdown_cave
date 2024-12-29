@@ -3,15 +3,16 @@
 
 const padding = 0.02 * width;
 
-const textSize = width * 0.03;
+const textSize = width * 0.025;
 const lineHeight = textSize * 1.25;
-
-const responseTextSize = width * 0.04;
+const responseTextSize = width * 0.07;
 const responseLineHeight = responseTextSize * 1.25;
 
 ctx.lineWidth = 4;
 ctx.rect(0, 0, width, height);
-ctx.stroke(); 
+ctx.fillStyle = 'black'; 
+ctx.fill();
+ctx.fillStyle = 'white'; 
 
 
 // setHeight(lineHeight * promptLines.length + lineHeight / 2);
@@ -30,7 +31,7 @@ for (let i = 0; i < promptLines.length; i++) {
 
 yPosition += lineHeight/2;
 
-ctx.font = `${responseTextSize}px monospace`;
+ctx.font = `${responseTextSize}px skanus`;
 ctx.textAlign = 'center';
 
 const responseText = "I found nudes my father took of my mother before I was born";

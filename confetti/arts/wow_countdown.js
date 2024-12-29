@@ -8,8 +8,12 @@ shader((x, y) => {
 });
 
 const textSize = height * 0.6;
-ctx.font = `bold ${textSize}px "Impact"`;
+ctx.font = `${textSize}px "skanus"`;
 ctx.textAlign = 'center';
 ctx.textBaseline = 'middle';
 
-ctx.fillText(`${Math.floor(timeLeft)} seconds until 2025`, width / 2, height/2);
+ctx.fillText(`Printed ${Math.floor(timeLeft)} seconds before 2025`, width / 2, height/2);
+
+
+// todo
+// randomly change font
