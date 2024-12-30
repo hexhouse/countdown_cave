@@ -16,8 +16,11 @@ ctx.stroke();
 ctx.translate(width/2, height/2);
 ctx.rotate(Math.sin(now * 1.1) * 0.1);
 ctx.translate(-width/2, -height/2);
-ctx.fillText(" TIME DOESNT EXIST ", width / 2 , height/2 + textSize/4);
+ctx.fillText(" TIME DOES NOT EXIST ", width / 2 , height/2.5 + textSize/4);
 
+const textSize2 = height * 0.2;
+ctx.font = `${textSize2}px "skanus"`;
+ctx.fillText(`Printed ${Math.floor(timeLeft)} seconds before 2025`, width  - width/3.4, height - (height/4));
 
 // todos
 // make it randomly white on black or black on white

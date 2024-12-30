@@ -44,9 +44,9 @@ for (let i = 0; i < responseLines.length; i++) {
 
 setHeight(yPosition + responseTextSize/2 + padding);
 
-const smallTextSize = width * 0.025;
+const smallTextSize = width * 0.028;
 ctx.font = `${smallTextSize}px "skanus"`;
 ctx.textAlign = 'center';
 ctx.textBaseline = 'middle';
 
-ctx.fillText(`Printed ${Math.floor(timeLeft)} seconds before 2025`, width  - width/5.5, height - (width/35));
+ctx.fillText(`Printed ${Math.floor(timeLeft)} seconds before 2025`, width  - width/5, height - (width/55));
