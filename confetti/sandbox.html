@@ -281,6 +281,48 @@ async function loadArts() {
   }
 };
 
+// Add function to get weighted random entry
+function getWeightedRandomEntry(data) {
+  // Give more weight to recent entries
+  const weights = data.map((_, index) => Math.pow(1.5, index));
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  
+  let random = Math.random() * totalWeight;
+  for (let i = data.length - 1; i >= 0; i--) {
+    random -= weights[i];
+    if (random <= 0) {
+      return data[i];
+    }
+  }
+  return data[data.length - 1]; // fallback to most recent
+}
+
+window.promptText = "What is a secret you haven't told anyone this year??";
+window.responseText = "I found nudes my father took of my mother before I was born!";
+let jsonData;
+
+fetch('../test-data-confetti.json')
+  .then(response => response.json())
+  .then(data => {
+    jsonData = data;
+    updatePromptAndResponse(); // Initial update
+    
+    // Add interval to update every second
+    setInterval(() => {
+      updatePromptAndResponse();
+    }, 1000);
+  })
+  .catch(error => console.error('Error loading data:', error));
+
+function updatePromptAndResponse() {
+  if (!jsonData) return;
+  const selectedEntry = getWeightedRandomEntry(jsonData);
+  window.promptText = selectedEntry.prompt;
+  window.responseText = selectedEntry.response;
+  console.log('Selected entry:', selectedEntry);
+  // draw();
+}
+
 const start = async () => {
   await loadArts();
 

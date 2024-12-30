@@ -21,7 +21,7 @@ let yPosition = padding/2;
 
 ctx.font = `${textSize}px monospace`;
 
-const promptText = "What is a secret you haven't told anyone this year?";
+const promptText = window.promptText;
 const promptLines = wrapLine(promptText, width - padding * 2);
 
 for (let i = 0; i < promptLines.length; i++) {
@@ -34,7 +34,7 @@ yPosition += lineHeight/2;
 ctx.font = `${responseTextSize}px skanus`;
 ctx.textAlign = 'center';
 
-const responseText = "I found nudes my father took of my mother before I was born";
+const responseText =window.responseText;
 const responseLines = wrapLine(responseText, width - padding * 2);
 
 for (let i = 0; i < responseLines.length; i++) {
