@@ -477,6 +477,13 @@
       console.log('Stored value:', inputValue);
     }
 
+    document.addEventListener('keydown', function(event) {
+    // Check if the pressed key is "Enter" (key code 13)
+    if (event.key === 'Enter') {
+        getPromptResponse();
+    }
+});
+
     function makeCountdown(el, targetDate, onEnd) {
       const targetTime = +targetDate;
       const countNode = el.firstChild;
@@ -535,26 +542,38 @@
     });
 
 
-               // Time in milliseconds (2 minutes)
-       const inactivityTimeLimit = 2 * 60 * 1000;
-        let inactivityTimer;
+// Time in milliseconds (2 minutes)
+const inactivityTimeLimit = 2 * 60 * 1000;
+let inactivityTimer;
 
-        // Function to reset the timer
-        function resetInactivityTimer() {
-            clearTimeout(inactivityTimer);
-            inactivityTimer = setTimeout(() => {
-                location.reload();
-            }, inactivityTimeLimit);
-        }
+// Function to reset the timer
+function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(() => {
+        location.reload();
+    }, inactivityTimeLimit);
+}
 
-        // Events that indicate user activity
-        const events = ['mousemove', 'keydown', 'scroll', 'click'];
+// Function to handle keydown events and prevent default for Enter key
+function handleKeydown(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+    }
+    resetInactivityTimer();
+}
 
-        // Add event listeners for all the events
-        events.forEach(event => {
-            window.addEventListener(event, resetInactivityTimer);
-        });
+// Events that indicate user activity
+const events = ['mousemove', 'keydown', 'scroll', 'click'];
 
-        // Initialize the timer when the page loads
-        resetInactivityTimer();
+// Add event listeners for all the events
+events.forEach(event => {
+    if (event === 'keydown') {
+        window.addEventListener(event, handleKeydown);
+    } else {
+        window.addEventListener(event, resetInactivityTimer);
+    }
+});
+
+// Initialize the timer when the page loads
+resetInactivityTimer();
   </script>
