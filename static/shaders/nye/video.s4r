@@ -1,0 +1,5 @@
+aspect aspect'video1 / =aspect
+fillp
+fb'video1 uv tex
+
+draw

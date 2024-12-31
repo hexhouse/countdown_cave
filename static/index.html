@@ -5,79 +5,17 @@
 <div id=clock class=hidden></div>
 <div id=videoPlayers></div>
 <div id=timer></div>
+<canvas id=glCanvas></canvas>
 <script type=module>
 
-import NYEScheduler from './lib/NYEScheduler.js';
-
-window.config = {
-  timekeeper: {
-    shift: 0,
-    speed: 1,
-  },
-};
-
-class Layer {
-  constructor(el) {
-    this.el = el;
-    this.visible = true;
-
-    const obs = new IntersectionObserver(entries => {
-      this.setVisible(entries[0].isIntersecting);
-    });
-    obs.observe(el);
-  }
-  setVisible(visible) {
-    if (visible == this.visible)
-      return;
-    this.visible = visible;
-    if (visible)
-      this.show();
-    else
-      this.hide();
-  }
-  show() {}
-  hide() {}
-  draw() {}
-  configChanged() {}
-}
-
-const randomChoice = a => a[Math.floor(Math.random() * a.length)];
-
-class VideoPlayer extends Layer {
-  constructor(parentEl) {
-    super(parentEl);
-    this.videoEls = [];
-    for (let i = 0; i < 1; i++) {
-      const videoEl = document.createElement('video');
-      videoEl.muted = true;
-      videoEl.autoplay = true;
-      videoEl.playsInline = true;
-      videoEl.addEventListener('ended', e => {
-        this.chooseVideo();
-      });
-      videoEl.addEventListener('error', e => {
-        this.chooseVideo();
-      });
-      this.el.appendChild(videoEl);
-      this.videoEls.push(videoEl);
-    }
-    this.needVideo = true;
-    this.chooseVideo();
-  }
-  chooseVideo() {
-    if (!window.config.videos) {
-      this.needVideo = true;
-      return;
-    }
-    const src = randomChoice(config.videos);
-    this.videoEls[0].src = src;
-    this.needVideo = false;
-  }
-  configChanged() {
-    if (this.needVideo)
-      this.chooseVideo();
-  }
-};
+import { config, state } from '/lib/NYE.js';
+import Layer from '/lib/Layer.js';
+import VideoPlayer from '/lib/VideoPlayer.js';
+import GPULayer from '/lib/GPULayer.js';
+import Canvas from '/lib/Canvas.js';
+import ProgramOutput from '/lib/ProgramOutput.js';
+import ShaderProgram from '/lib/ShaderProgram.js'
+import Observers from '/lib/Observers.js';
 
 class CanvasTimer extends Layer {
   constructor(el) {
@@ -130,76 +68,180 @@ class AmbientTimer extends Layer {
   }
 }
 
-const layers = [
-  new VideoPlayer(videoPlayers),
-  new AmbientTimer(timer),
-];
+// const gpuLayer = new GPULayer(glCanvas);
 
-window.state = {};
+const canvas = new Canvas(glCanvas, null, {
+  antialias: true,
+});
+
+canvas.gl.enable(canvas.gl.BLEND);
+canvas.gl.pixelStorei(canvas.gl.UNPACK_FLIP_Y_WEBGL, true);
+canvas.gl.getExtension("OES_standard_derivatives");
+canvas.gl.blendFunc(canvas.gl.ONE, canvas.gl.ONE_MINUS_SRC_ALPHA);
+
+const makeVideoTexture = (cb, videoIn) => {
+  const { gl } = canvas;
+  const video = videoIn || document.createElement('video');
+  video.muted = true;
+  video.crossOrigin = true;
+  video.loop = true;
+
+  let lastUpdate = null;
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, canvas.gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, canvas.gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+  let haveFrame = false;
+
+  const vfcb = () => {
+    haveFrame = true;
+    video.requestVideoFrameCallback(vfcb);
+  }
+
+  // vfcb();
+
+  gl.texImage2D(
+    gl.TEXTURE_2D, 0, gl.LUMINANCE,
+    128, 128, 0,
+    gl.LUMINANCE, gl.UNSIGNED_BYTE, null
+  );
+
+  const ensureCurrent = () => {
+    const now = Date.now();
+    if (lastUpdate == now)
+      return;
+    haveFrame = false;
+    lastUpdate = now;
+    if (!video.videoWidth || !video.videoHeight)
+      return;
+    gl.texImage2D(
+      gl.TEXTURE_2D, 0, gl.RGB, gl.RGB,
+      gl.UNSIGNED_BYTE, video
+    );
+  };
+
+  return {
+    video,
+    get w() { return video.videoWidth; },
+    get h() { return video.videoHeight; },
+    draw() {
+      ensureCurrent();
+    },
+    get tex() {
+      if (cb) {
+        cb(video);
+        cb = null;
+      }
+      return tex;
+    },
+    load(src) {
+      video.src = src;
+      video.load();
+    },
+  }
+};
 
 window.ctx = {
+  config,
+  state,
   now() {
     const { shift, speed } = config.timekeeper;
     const start = +new Date('12-31-2024');
     const now = reserve.now();
     const delta = (now + shift*1000/speed - start) * speed;
     return start + delta;
-  }
+  },
+  showFile: '/show/ambient.js',
+  events: new Observers(),
+  canvas,
+  textures: {},
+  uniforms: {},
+  uniformsChanged() {
+    renderer.uniformsChanged();
+  },
+  medFFT: { buf: null },
+  fastFFT: { buf: null },
+  slowFFT: { buf: null },
+  viewportStack: [],
+  get viewport() { return this.viewportStack[0] || canvas.viewport; },
+  withViewport(viewport, f) {
+    this.viewportStack.unshift(viewport);
+    this.canvas.gl.viewport(...this.viewport);
+    try {
+      f();
+    } finally {
+      this.viewportStack.shift();
+      this.canvas.gl.viewport(...this.viewport);
+    }
+  },
 };
 
-const scheduler = new NYEScheduler((events) => {
-  for (const event of events) {
-    if (event.state)
-      Object.assign(state, event.state);
-  }
-  console.log('STATE', state);
+ctx.copyProgram = new ShaderProgram(
+  ctx,
+  '/shaders/default.vert',
+  '/shaders/util/copy.frag');
+ctx.drawCopy = tex => {
+  const { copyProgram } = ctx;
+  if (!copyProgram.checkReady())
+    return;
+  const hadBuf = 'buf' in copyProgram.uniforms;
+  copyProgram.uniforms.buf = tex;
+  if (!hadBuf)
+    copyProgram.uniformsChanged();
+  copyProgram.draw();
+};
 
-  document.body.dataset.phase = state.phase;
-  timer.classList.toggle('visible', state.ambientCountdown);
+const videoPlayer = new VideoPlayer(videoPlayers);
 
-  window.dispatchEvent(new Event('statechanged'));
-});
+const layers = [
+  videoPlayer,
+  // new VideoPlayer(videoPlayers),
+  new AmbientTimer(timer),
+  // gpuLayer,
+];
 
-const configURL = new URL('config.js', location);
-const videosDir = new URL('/countdown_videos/', location);
+ctx.textures.video1 = makeVideoTexture(() => {}, videoPlayer.videoEls[0]);
 
-const reloadConfig = async () => {
-  const [videoList, cfgText] = await Promise.all([
-    fetch(videosDir).then(r => r.json()),
-    fetch('config.js', { cache: 'reload' }).then(r => r.text()),
-  ]);
+const programOutput = new ProgramOutput(ctx, true);
 
-  Object.assign(config, new Function(cfgText)());
-  config.videos = videoList.map(v => new URL(v.name, videosDir));
-  console.log('CONFIG', config);
-
+window.addEventListener('nye.statechanged', e => {
   for (const layer of layers) {
-    layer.configChanged();
-  }
-
-  const schedule = Object.keys(config.schedule).map(k => [
-    +new Date(k),
-    config.schedule[k]]);
-  scheduler.load(schedule);
-
-  clock.classList.toggle('visible', config.debug);
-};
-
-reloadConfig();
-
-window.addEventListener('sourcechange', e => {
-  if (e.detail == configURL.href) {
-    e.preventDefault();
-    reloadConfig();
+    layer.stateChanged();
   }
 });
+
+const renderer = programOutput;
+let lastError;
+
+const draw = () => {
+  for (const layer of layers)
+    layer.draw();
+
+  canvas.draw(gl => {
+    canvas.gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    renderer.draw();
+    if (renderer.error != lastError) {
+      console.log('FUCK', renderer.error);
+      lastError = renderer.error;
+    }
+  });
+};
 
 const handleAnimationFrame = () => {
   requestAnimationFrame(handleAnimationFrame);
   clock.textContent = new Date(ctx.now()).toLocaleString();
-  for (const layer of layers)
-    layer.draw();
+  draw();
 };
 handleAnimationFrame();
+
+window.addEventListener('sourcechange', e => {
+  const changedPath = new URL(e.detail, location).pathname;
+  if (changedPath.startsWith('/shaders/'))
+    e.preventDefault();
+});
 
 </script>

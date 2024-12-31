@@ -1,0 +1,28 @@
+:def text {
+ aspect aspect'nye_count / =aspect
+ fitp
+ p 0.5 * =p
+ p [ 0. -0.1 0 ] + =p
+ fb'nye_count uv tex .r
+ }
+
+fb'filt uv tex dup 0.2 * swap inv text mix
+
+draw
+bail
+
+{
+p [ 0 0.4 0 ] + 1 balmod =p
+fb'f uv tex 0.99 * +
+}
+
+text 0.0 * + 1 mod
+
+drawto'f
+
+fb'f uv tex
+fb'filt uv tex
+blend
+
+dup inv text mix
+draw

@@ -1,26 +1,26 @@
 @font-face {
     font-family: 'LaBorisette';
-    src: url('/confetti/assets/LaBorisette-Regular.otf') format("opentype");
+    src: url('/assets/LaBorisette-Regular.otf') format("opentype");
 }
 
 @font-face {
     font-family: 'Segment7';
-    src: url('/assets/Segment7Standard.otf') format("opentype");
+    src: url('/assets/WooveboxSegment7Standard.otf') format("opentype");
 }
 
 @font-face {
     font-family: 'pinyon';
-    src: url('/confetti/assets/PinyonScript-Regular.ttf') format("truetype");
+    src: url('/assets/PinyonScript-Regular.ttf') format("truetype");
 }
 
 @font-face {
     font-family: 'skanus';
-    src: url('/confetti/assets/Skanaus-Display.otf') format("opentype");
+    src: url('/assets/Skanaus-Display.otf') format("opentype");
 }
 
 @font-face {
     font-family: 'tiltortion';
-    src: url('/confetti/assets/Tiltortion.otf') format("opentype");
+    src: url('/assets/Tiltortion.otf') format("opentype");
 }
 
 
@@ -57,6 +57,10 @@ body[data-phase="blackout"] #videoPlayers {
   display: none;
 }
 
+#videoPlayers {
+  display: none;
+}
+
 #clock:not(.visible) {
   display: none;
 }
@@ -83,3 +87,8 @@ body[data-phase="blackout"] #videoPlayers {
   display: none;
 }
 
+#glCanvas {
+  width: 100vw;
+  height: 100vh;
+  display: block;
+}

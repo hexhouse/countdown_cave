@@ -1,3 +1,5 @@
+import { config, state } from '/lib/NYE.js';
+
 class Schedule {
   constructor(onEvents) {
     this.events = [];
@@ -10,7 +12,7 @@ class Schedule {
   load(events) {
     this.events = events.slice().sort(([a, b]) => a[0] - b[0]);
     this.reset();
-    this.advanceTo(ctx.now());
+    this.advanceTo(window.ctx.now());
   }
   advanceTo(t) {
     const ret = [];
