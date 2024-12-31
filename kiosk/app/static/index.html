@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<style>
+
+body {
+  margin: 0;
+  background: black;
+  color: white;
+  overflow: hidden;
+  font: bold 120px sans-serif;
+
+  --v-underscan: 4vh;
+  --h-underscan: 4vw;
+  padding: var(--v-underscan) var(--h-underscan);
+  height: calc(100vh - var(--v-underscan) * 2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 100vh;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+</style>
+<body bgcolor=black>
+  <object data="./stopwatch.svg" type="image/svg+xml" width="50%" ></object>
+<script type=module>
+
+// const dstURL = 'http://strangesequences-tv-12.local:8083';
+  const dstURL = `http://cave/${location.search}`;
+
+if (window.SS) {
+  document.body.style.setProperty('--h-underscan', `${SS.underscan_h || 0}px`);
+  document.body.style.setProperty('--v-underscan', `${SS.underscan_v || 0}px`);
+}
+
+setInterval(() => {
+  fetch(dstURL)
+    .then(() => location.href = new URL(location.search, dstURL))
+    .catch(e => {});
+}, 1000);
+
+</script>

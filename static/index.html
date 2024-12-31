@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel=stylesheet href=style.css>
+<title>timecave</title>
+<div id=clock class=hidden></div>
+<div id=videoPlayers></div>
+<div id=timer></div>
+<script type=module>
+
+import NYEScheduler from './lib/NYEScheduler.js';
+
+window.config = {
+  timekeeper: {
+    shift: 0,
+    speed: 1,
+  },
+};
+
+class Layer {
+  constructor(el) {
+    this.el = el;
+    this.visible = true;
+
+    const obs = new IntersectionObserver(entries => {
+      this.setVisible(entries[0].isIntersecting);
+    });
+    obs.observe(el);
+  }
+  setVisible(visible) {
+    if (visible == this.visible)
+      return;
+    this.visible = visible;
+    if (visible)
+      this.show();
+    else
+      this.hide();
+  }
+  show() {}
+  hide() {}
+  draw() {}
+  configChanged() {}
+}
+
+const randomChoice = a => a[Math.floor(Math.random() * a.length)];
+
+class VideoPlayer extends Layer {
+  constructor(parentEl) {
+    super(parentEl);
+    this.videoEls = [];
+    for (let i = 0; i < 1; i++) {
+      const videoEl = document.createElement('video');
+      videoEl.muted = true;
+      videoEl.autoplay = true;
+      videoEl.playsInline = true;
+      videoEl.addEventListener('ended', e => {
+        this.chooseVideo();
+      });
+      videoEl.addEventListener('error', e => {
+        this.chooseVideo();
+      });
+      this.el.appendChild(videoEl);
+      this.videoEls.push(videoEl);
+    }
+    this.needVideo = true;
+    this.chooseVideo();
+  }
+  chooseVideo() {
+    if (!window.config.videos) {
+      this.needVideo = true;
+      return;
+    }
+    const src = randomChoice(config.videos);
+    this.videoEls[0].src = src;
+    this.needVideo = false;
+  }
+  configChanged() {
+    if (this.needVideo)
+      this.chooseVideo();
+  }
+};
+
+class CanvasTimer extends Layer {
+  constructor(el) {
+    super(el);
+    this.canvas = document.createElement('canvas');
+    el.appendChild(this.canvas);
+    this.ctx = this.canvas.getContext('2d');
+
+    this.resizeObserver = new ResizeObserver(() => {
+      this.resize();
+    });
+    this.resizeObserver.observe(this.el);
+  }
+  draw() {
+    if (!this.visible)
+      return;
+    const { canvas, ctx } = this;
+    const { width, height } = canvas;
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.beginPath();
+    ctx.save();
+    ctx.translate(width/2, height/2);
+    ctx.rotate(Math.sin(window.ctx.now() / 1000));
+    ctx.translate(-width/2, -height/2);
+    ctx.rect(width/2-width*0.05, height/2-width*0.05, width*0.1, width*0.1);
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 10;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  resize() {
+    const { canvas } = this;
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
+    this.draw();
+  }
+}
+
+class AmbientTimer extends Layer {
+  constructor(el) {
+    super(el);
+  }
+  draw() {
+    const delta = (config.midnight - ctx.now()) / 1000;
+    const s = delta < 0 ? '2025!' : `${Math.floor(delta/60)}:${(delta%60).toFixed(0).padStart(2, '0')}`;
+    if (this.el.textContent != s)
+      this.el.textContent = s;
+  }
+}
+
+const layers = [
+  new VideoPlayer(videoPlayers),
+  new AmbientTimer(timer),
+];
+
+window.state = {};
+
+window.ctx = {
+  now() {
+    const { shift, speed } = config.timekeeper;
+    const start = +new Date('12-31-2024');
+    const now = reserve.now();
+    const delta = (now + shift*1000/speed - start) * speed;
+    return start + delta;
+  }
+};
+
+const scheduler = new NYEScheduler((events) => {
+  for (const event of events) {
+    if (event.state)
+      Object.assign(state, event.state);
+  }
+  console.log('STATE', state);
+
+  document.body.dataset.phase = state.phase;
+  timer.classList.toggle('visible', state.ambientCountdown);
+
+  window.dispatchEvent(new Event('statechanged'));
+});
+
+const configURL = new URL('config.js', location);
+const videosDir = new URL('/countdown_videos/', location);
+
+const reloadConfig = async () => {
+  const [videoList, cfgText] = await Promise.all([
+    fetch(videosDir).then(r => r.json()),
+    fetch('config.js', { cache: 'reload' }).then(r => r.text()),
+  ]);
+
+  Object.assign(config, new Function(cfgText)());
+  config.videos = videoList.map(v => new URL(v.name, videosDir));
+  console.log('CONFIG', config);
+
+  for (const layer of layers) {
+    layer.configChanged();
+  }
+
+  const schedule = Object.keys(config.schedule).map(k => [
+    +new Date(k),
+    config.schedule[k]]);
+  scheduler.load(schedule);
+
+  clock.classList.toggle('visible', config.debug);
+};
+
+reloadConfig();
+
+window.addEventListener('sourcechange', e => {
+  if (e.detail == configURL.href) {
+    e.preventDefault();
+    reloadConfig();
+  }
+});
+
+const handleAnimationFrame = () => {
+  requestAnimationFrame(handleAnimationFrame);
+  clock.textContent = new Date(ctx.now()).toLocaleString();
+  for (const layer of layers)
+    layer.draw();
+};
+handleAnimationFrame();
+
+</script>

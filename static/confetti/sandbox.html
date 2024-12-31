@@ -91,6 +91,36 @@ canvas {
 <ul id=previews></ul>
 <script type=module>
 
+import WSConnection from '/lib/WSConnection.js';
+
+const printerConn = new WSConnection('ws://127.0.0.1:10018');
+printerConn.onmessage = m => {};
+printerConn.connect();
+window.printerConn = printerConn;
+
+const printer = {
+  bufs: [],
+  transferOut(_, buf) {
+    this.bufs.push(buf);
+    if (this.willTransfer)
+      return;
+    this.willTransfer = true;
+    setTimeout(() => {
+      const len = this.bufs.reduce((sum, x) => sum + x.length, 0);
+      const buf = new Uint8Array(len);
+      let pos = 0;
+      for (const b of this.bufs) {
+        buf.set(b, pos);
+        pos += b.length;
+      }
+      console.log(buf);
+      this.bufs.length = 0;
+      this.willTransfer = false;
+      printerConn.send(buf.buffer);
+    }, 0);
+  }
+}
+
 function floydSteinbergBW(imgData, errorMultiplier = 1.0) {
   const { width: w, height: h, data } = imgData;
     for (let y = 0; y < h; y++) {
@@ -127,6 +157,45 @@ function floydSteinbergBW(imgData, errorMultiplier = 1.0) {
         }
       }
     }
+}
+
+function printCanvas(canvas, ctx) {
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const width = Math.min(canvas.width, 640);
+  const height = canvas.height;
+  const bytesPerRow = Math.ceil(width / 8);
+  const buffer = new Uint8Array(bytesPerRow * height);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * imgData.width + x) * 4;
+      const brightness = ((imgData.data[idx] + imgData.data[idx + 1] + imgData.data[idx + 2]) / 3);
+      const alpha = imgData.data[idx + 3] / 0xff;
+      const darkness = (255 - brightness) * alpha;
+      
+      // If pixel is dark enough, set the bit in the buffer
+      if (darkness > 188) {
+        buffer[y * bytesPerRow + (x >> 3)] |= (0x80 >> (x & 7));
+      }
+    }
+  }
+
+  // Define `GS v 0` header with mode 0 (normal), and set width and height
+  const xL = bytesPerRow & 0xFF;
+  const xH = (bytesPerRow >> 8) & 0xFF;
+  const yL = height & 0xFF;
+  const yH = (height >> 8) & 0xFF;
+
+  const header = new Uint8Array([0x1D, 0x76, 0x30, 0x00, xL, xH, yL, yH]);
+
+  // const feedAmt = 10;
+  // printer.transferOut(1, new Uint8Array([
+  //   0x1B, 0x4A, feedAmt,
+  // ]));
+
+  // Send header and image data to the printer
+  printer.transferOut(1, header); // Send header
+  printer.transferOut(1, buffer);  // Send image data
 }
 
 function findClosest(oldpixel, palArr) {
@@ -166,16 +235,56 @@ function createArt(url) {
   const name = el.querySelector('h2');
   const canvas = el.querySelector('canvas');
 
+  const ctx = canvas.getContext('2d', {
+    willReadFrequently: true
+  });
+
+  const printButton = document.createElement('button');
+  printButton.textContent = 'print';
+  el.appendChild(printButton);
+
+  printButton.onclick = e => {
+    e.preventDefault();
+
+    printer.transferOut(1, new Uint8Array([
+      // 0x1B, 0x64, 5,
+      0x1B, 0x64, 0,
+      // 0x1B, 0x64, 20,
+      // 0x1B, 0x4A, 20,
+    ]));
+
+    printCanvas(canvas, ctx);
+
+    printer.transferOut(1, new Uint8Array([
+      0x1B, 0x64, 3,
+      0x1B, 0x6D,
+      // 0x1B, 0x4A, 10,
+      // 0x1B, 0x4A, 10,
+      // 0x1B, 0x4A, 10,
+      // 0x1B, 0x4A, 10,
+      // 0x1B, 0x4A, 10,
+      // 0x1B, 0x4A, 20,
+      // 0x1B, 0x4A, 20,
+      // 0x1B, 0x4A, 20,
+      // 0x1B, 0x4A, 220,
+    ]));
+
+    // setTimeout(() => {
+      // const feedAmt = 150;
+      // printer.transferOut(1, new Uint8Array([
+      //   // 0x1B, 0x4A, feedAmt,
+      //   0x1D, 0x56, 0x00,
+      //   // 0x1B, 0x4B, feedAmt,
+      //   ]));
+    // }, 2500)
+  };
+
   const ret = { el, draw(){} }
 
   name.textContent = url.href.slice(base.href.length);
 
   fetch(url).then(async r => {
     const text = await r.text();
-    const ctx = canvas.getContext('2d', {
-      willReadFrequently: true
-    });
-
     const globals = {
       ctx, canvas,
       width: 0,
@@ -192,7 +301,7 @@ function createArt(url) {
       Object.assign(globals, {
         width, height,
         setHeight(newHeight) {
-          newHeight = Math.floor(newHeight);
+          newHeight = Math.max(100, Math.floor(newHeight));
           if (newHeight != height) {
             init(width, newHeight);
             ret.draw();
@@ -263,7 +372,7 @@ function createArt(url) {
       };
 
     }
-    init(640, 100);
+    init(640, 50);
 
     el.appendChild(canvas);
   });

@@ -1,0 +1,8 @@
+xset s off -dpms
+
+hostconfig="./perhost/$(cat /etc/hostname)"
+test -f "$hostconfig" && . "$hostconfig"
+
+export SS_HOSTNAME="$(hostname)"
+
+exec ./run.sh

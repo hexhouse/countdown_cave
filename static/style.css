@@ -1,0 +1,85 @@
+@font-face {
+    font-family: 'LaBorisette';
+    src: url('/confetti/assets/LaBorisette-Regular.otf') format("opentype");
+}
+
+@font-face {
+    font-family: 'Segment7';
+    src: url('/assets/Segment7Standard.otf') format("opentype");
+}
+
+@font-face {
+    font-family: 'pinyon';
+    src: url('/confetti/assets/PinyonScript-Regular.ttf') format("truetype");
+}
+
+@font-face {
+    font-family: 'skanus';
+    src: url('/confetti/assets/Skanaus-Display.otf') format("opentype");
+}
+
+@font-face {
+    font-family: 'tiltortion';
+    src: url('/confetti/assets/Tiltortion.otf') format("opentype");
+}
+
+
+body {
+  background: black;
+  color: white;
+  margin: 0;
+}
+
+#clock {
+  font-size: 4em;
+  font: 6vw monospace;
+  position: fixed;
+  background: rgba(255, 0, 0, 0.5);
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 0.25em;
+}
+
+video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* width: auto;
+  height: auto; */
+  z-index: -1;
+  object-fit: cover;
+}
+
+body[data-phase="blackout"] #videoPlayers {
+  display: none;
+}
+
+#clock:not(.visible) {
+  display: none;
+}
+
+#timer {
+  font: italic 10vw Monaco;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.25em;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: invert(1);
+}
+
+#timer canvas {
+  display: block;
+  height: 100%;
+}
+
+#timer:not(.visible) {
+  display: none;
+}
+

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<style>
+body {
+  background: black;
+  color: white;
+  font-size: 18px;
+}
+</style>
+<pre id=debug></pre>
+
+<script type=module>
+
+import state from '/lib/state.js';
+import WSConnection from '/lib/WSConnection.js';
+import qs from '/lib/qs.js';
+
+window.state = state;
+state.isSourceOfTruth = true;
+
+const reset = () => {
+  // clearTimeout(heartbeatTimeout);
+  // clearTimeout(longbeatTimeout);
+  // state.set('phase', 'welcome');
+  // state.set('sessionKey', Math.random().toString(36).slice(2));
+  // state.broadcast({ name: 'scroll', value: 0 });
+};
+
+const tick = resetImages => {
+};
+
+let initial = true;
+
+window.addEventListener('docent', e => {
+  if (e.detail == 'resetSession')
+    location.reload(true);
+});
+
+window.addEventListener('broadcast', e => {
+  const { name, value } = e.detail;
+  if (name == 'heartbeat')
+    resetHeartbeat();
+});
+
+state.observe(k => {
+  debug.textContent = JSON.stringify(state.state, null, '  ');
+  if (initial) {
+    initial = false;
+    setInterval(() => tick(), 312);
+    setTimeout(() => {
+      reset();
+      tick(true)
+    }, 0);
+  }
+  if (k == 'phase') {
+    resetLongbeat();
+  }
+  if (k == 'phase' && state.state.phase == 'welcome') {
+    state.set('scenario', null);
+    state.set('roleConfig', null);
+    state.set('images', null);
+    tick(true);
+  // } else if (k = 'phase' && state.state.phase == 'lesson') {
+  //   state.set('imageAssignment', state.state.imageAssignments.map(x => 'glitch/glitch7.mp4'));
+  }
+  if (k == 'images')
+    tick(true);
+  if (state.state.trigger)
+    state.set('trigger', null);
+});
+
+window.addEventListener('sourcechange', e => {
+  const path = new URL(e.detail).pathname;
+  if (path.split('/')[1] != 'state')
+    e.preventDefault();
+});
+
+window.addEventListener('sourcechange', e => {
+  const path = new URL(e.detail).pathname;
+  if (path == '/config.js') {
+    loadConfig();
+    e.preventDefault();
+  }
+  if (path.split('/')[1] == 'screen') {
+    e.preventDefault();
+  } else if (path.split('/')[1] == 'ui') {
+    setTimeout(() => {
+      for (const el of document.querySelectorAll('[data-is-view]'))
+        View.get(el).noop();
+    }, 0); // TODO
+  }
+});
+
+</script>
