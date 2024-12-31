@@ -4,7 +4,6 @@
 <title>timecave</title>
 <div id=clock class=hidden></div>
 <div id=videoPlayers></div>
-<div id=timer></div>
 <canvas id=glCanvas></canvas>
 <script type=module>
 
@@ -16,6 +15,8 @@ import Canvas from '/lib/Canvas.js';
 import ProgramOutput from '/lib/ProgramOutput.js';
 import ShaderProgram from '/lib/ShaderProgram.js'
 import Observers from '/lib/Observers.js';
+import Gradual from '/lib/Gradual.js';
+import qs from '/lib/qs.js';
 
 class CanvasTimer extends Layer {
   constructor(el) {
@@ -145,8 +146,8 @@ const makeVideoTexture = (cb, videoIn) => {
 };
 
 window.ctx = {
-  config,
-  state,
+  Gradual,
+  nye: { config, state, },
   now() {
     const { shift, speed } = config.timekeeper;
     const start = +new Date('12-31-2024');
@@ -154,9 +155,12 @@ window.ctx = {
     const delta = (now + shift*1000/speed - start) * speed;
     return start + delta;
   },
+  showTag: qs.which || null,
   showFile: '/show/ambient.js',
   events: new Observers(),
   canvas,
+  params: {
+  },
   textures: {},
   uniforms: {},
   uniformsChanged() {
@@ -199,7 +203,7 @@ const videoPlayer = new VideoPlayer(videoPlayers);
 const layers = [
   videoPlayer,
   // new VideoPlayer(videoPlayers),
-  new AmbientTimer(timer),
+  // new AmbientTimer(timer),
   // gpuLayer,
 ];
 
@@ -221,7 +225,7 @@ const draw = () => {
     layer.draw();
 
   canvas.draw(gl => {
-    canvas.gl.clearColor(0, 0, 0, 0);
+    canvas.gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     renderer.draw();
     if (renderer.error != lastError) {

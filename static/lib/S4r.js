@@ -70,7 +70,7 @@ const glTypeFromBinaryOperationOnTypes = (l, r) => {
 
 const commonDefs = `
 
-// #define texture2D texture
+#define texture2D texture
 
 const float PI = asin(1.0) * 2.;
 
@@ -131,13 +131,14 @@ float sdBoundingBox( vec3 p, vec3 b, float e )
 
 `;
 
-const wrapVertShader = (body, defs) => `
+const wrapVertShader = (body, defs) => ` #version 300 es
+
 precision highp float;
 
-attribute vec4 p_in;
-attribute vec3 norm_in;
-varying vec3 p;
-varying vec3 norm;
+in vec4 p_in;
+in vec3 norm_in;
+out vec3 p;
+out vec3 norm;
 
 ${defs || ""}
 
@@ -147,11 +148,14 @@ void main() {
   ${body};
 }`;
 
-const wrapFragShader = (body, defs) => `
+const wrapFragShader = (body, defs) => ` #version 300 es
+#define gl_FragColor fragColor
+
 precision highp float;
 
-varying vec3 p;
-varying vec3 norm;
+in vec3 p;
+in vec3 norm;
+out vec4 fragColor;
 
 ${defs || ""}
 

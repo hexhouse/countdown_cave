@@ -56,7 +56,7 @@ export default class Framebuffer {
     );
     gl.bindTexture(gl.TEXTURE_2D, this.depthTex);
     gl.texImage2D(
-      gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT,
+      gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT16,
       this.viewport[2], this.viewport[3], 0,
       gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null
     );
@@ -94,4 +94,5 @@ Framebuffer.stack = [];
 // Framebuffer.reuse = framebuffer => {
 //   Framebuffer.reusePool.push(framebuffer);
 // };
+
 

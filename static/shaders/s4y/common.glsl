@@ -1,9 +1,11 @@
+#version 300 es
+
 precision highp float;
 precision highp int;
 
-varying vec3 p3;
-// out vec4 fragColor;
-// #define gl_FragColor fragColor
+in vec3 p3;
+out vec4 fragColor;
+#define gl_FragColor fragColor
 
 uniform float t;
 

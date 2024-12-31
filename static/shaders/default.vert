@@ -1,7 +1,9 @@
+#version 300 es
+
 precision mediump float;
 
-attribute vec3 p_in;
-varying vec3 p3;
+in vec3 p_in;
+out vec3 p3;
 
 void main() {
   p3 = p_in;

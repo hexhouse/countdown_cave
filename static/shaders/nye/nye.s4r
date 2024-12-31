@@ -1,12 +1,19 @@
 :def text {
  aspect aspect'nye_count / =aspect
  fitp
- p 0.5 * =p
+ # p .x 1 + 2 balmod p .y 0.75 2 / + 0.75 balmod p .z vec3 =p
+ p [ t 100 * sin t 120 * sin 1 ] 0.02 param'nyeCountdownShake * * + =p
+ p 1 0.4 param'nyeCountdownFade mix * =p 
  p [ 0. -0.1 0 ] + =p
  fb'nye_count uv tex .r
- }
+ } param'nyeCountdownFade *
 
-fb'filt uv tex dup 0.2 * swap inv text mix
+:def bg fb'filt uv tex
+
+bg inv [ 0 0 0 1 ] max text *
+# bg text [ 1 1 1 1 ] * text inv mix
+
+bg param'nyeCountdownBlackout inv * blend
 
 draw
 bail
@@ -16,7 +23,7 @@ p [ 0 0.4 0 ] + 1 balmod =p
 fb'f uv tex 0.99 * +
 }
 
-text 0.0 * + 1 mod
+# text 0.1 * + 1 mod
 
 drawto'f
 
@@ -25,4 +32,7 @@ fb'filt uv tex
 blend
 
 dup inv text mix
+
+fb'filt uv tex param'nyeCountdownFade inv mix
+
 draw

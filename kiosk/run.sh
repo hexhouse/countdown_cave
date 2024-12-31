@@ -2,5 +2,5 @@
 
 cd app
 while :; do
-  npx electron --no-sandbox .
+  npx --yes electron --no-sandbox .
 done

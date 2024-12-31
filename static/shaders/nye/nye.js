@@ -10,7 +10,7 @@ class TextRenderer {
     this.ctx.font = `bold ${this.fontSize}px ${font}`;
     this.ctx.fillStyle = 'white';
     this.ctx.textAlign = 'center';
-    this.drawText("");
+    this.drawText(".");
   }
   render(text) {
     const { renderCanvas, ctx, lineHeight } = this;
@@ -59,12 +59,14 @@ class TextRenderer {
   }
 }
 
-const oldSchoolTextRenderer = new TextRenderer(ctx.canvas.gl, "Segment7");
-ctx.uniforms.nye_count = ctx.globalTextures.nye_count = oldSchoolTextRenderer.tex;
-ctx.uniformsChanged();
-console.log(oldSchoolTextRenderer.tex);
+const { config, state } = window.ctx.nye;
 
-const { config, state } = window.ctx;
+const textRenderer = new TextRenderer(ctx.canvas.gl, "Segment7");
+ctx.uniforms.nye_count = ctx.globalTextures.nye_count = textRenderer.tex;
+
+ctx.params.nyeCountdownFade ||= new ctx.Gradual(0, 0.99);
+ctx.params.nyeCountdownShake ||= new ctx.Gradual(0, 0.99);
+ctx.params.nyeCountdownBlackout ||= new ctx.Gradual(0, 0.99);
 
 return () => {
   const left = Math.floor((config.midnight - ctx.now())/1000);
@@ -75,6 +77,12 @@ return () => {
     ? `${h.toFixed(0)}${m?':'+m.toFixed(0).padStart(2, '0'):''}:${s.toFixed(0).padStart(2, '0')}`
     : s;
 
-  oldSchoolTextRenderer.drawText(str);
-  // ctx.uniforms.nye_count = ctx.globalTextures.nye_count = oldSchoolTextRenderer.tex;
+  ctx.params.nyeCountdownFade.value = state.ambientCountdown ? 1 : 0;
+  ctx.params.nyeCountdownBlackout.value = state.ambientCountdownBlackout;
+
+  textRenderer.drawText(str);
+  if (ctx.uniforms.nye_count != textRenderer.tex) {
+    ctx.uniforms.nye_count = ctx.globalTextures.nye_count = textRenderer.tex;
+    ctx.uniformsChanged();
+  }
 };

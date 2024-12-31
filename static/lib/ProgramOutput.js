@@ -19,7 +19,7 @@ export default class ProgramOutput {
     this.ctx = ctx;
     this.autoTake = autoTake;
     this.fade = 1;
-    this.takeSpeed = 0.1;
+    this.takeSpeed = 0.01;
     this.el = document.createElement('div');
     this.layers = [];
     const renderZone = document.createElement('div');

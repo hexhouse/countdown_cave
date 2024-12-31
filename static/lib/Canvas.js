@@ -9,13 +9,13 @@ export default class Canvas {
       powerPreference: 'high-performance',
       ...opts,
     };
-    // this.gl = canvasEl.getContext('webgl2', glOpts);
+    this.gl = canvasEl.getContext('webgl2', glOpts);
     this.webglVersion = '1';
     if (this.gl) {
       this.webglVersion = '2';
     } else {
       this.gl = canvasEl.getContext('webgl', glOpts);
-      this.gl.getExtension('WEBGL_depth_texture');
+      // this.gl.getExtension('WEBGL_depth_texture');
     }
 
     this.s3tc = this.gl.getExtension('WEBGL_compressed_texture_s3tc');

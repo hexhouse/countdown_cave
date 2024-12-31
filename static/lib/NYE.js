@@ -20,7 +20,7 @@ const scheduler = new NYEScheduler((events) => {
   console.log('STATE', state);
 
   document.body.dataset.phase = state.phase;
-  timer.classList.toggle('visible', state.ambientCountdown);
+  // timer.classList.toggle('visible', state.ambientCountdown);
 
   window.dispatchEvent(new Event('nye.statechanged'));
 });

@@ -12,12 +12,20 @@ return {
       state: {
         phase: 'ambient',
         ambientCountdown: false,
+        ambientCountdownBlackout: 0.0,
         // ambientCountdown: true,
       }
     },
-    '12-31-2024 11:40:00 PM EST': {
+    '12-31-2024 4:50:00 PM EST': {
       state: {
-        // ambientCountdown: true,
+        ambientCountdown: true,
+        ambientCountdownBlackout: 0.1,
+      }
+    },
+    '12-31-2024 11:30:00 PM EST': {
+      state: {
+        ambientCountdown: true,
+        ambientCountdownBlackout: 0.4,
       }
     },
     '1-1-2025 12:00:00 AM EST': {
@@ -26,4 +34,4 @@ return {
       }
     }
   }
-};
+}
