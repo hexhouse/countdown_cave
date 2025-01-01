@@ -12,7 +12,7 @@ const responseLineHeight = responseTextSize * 1.25;
 
 
 function calculateFillPercentage() {
-  const now = new Date();
+  const now = new Date(reserve.now());
   const hours = now.getHours();
   const minutes = now.getMinutes();
   const seconds = now.getSeconds();
