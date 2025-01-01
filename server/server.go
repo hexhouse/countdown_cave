@@ -109,7 +109,7 @@ type persistFile struct {
 	filename string
 }
 
-var confettiFile = &persistFile{filename: "../confetti.json"}
+var confettiFile = &persistFile{filename: "../static/confetti.json"}
 
 func persist(f *persistFile, obj interface{}) error {
 	f.mu.Lock()
