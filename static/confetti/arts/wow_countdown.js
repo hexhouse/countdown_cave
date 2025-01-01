@@ -7,7 +7,7 @@ shader((x, y) => {
   return (1-Math.pow((Math.sin((y*2-1)*Math.PI*10*(x*2-1)+now)/2), 1)) * 0.4;
 });
 
-const textSize = height * 0.6;
+const textSize = width * 0.05;
 ctx.font = `${textSize}px "skanus"`;
 ctx.textAlign = 'center';
 ctx.textBaseline = 'middle';

@@ -16,7 +16,7 @@ return {
         // ambientCountdown: true,
       }
     },
-    '12-31-2024 4:50:00 PM EST': {
+    '12-31-2024 11:00:00 PM EST': {
       state: {
         ambientCountdown: true,
         ambientCountdownBlackout: 0.1,

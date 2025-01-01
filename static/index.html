@@ -248,4 +248,17 @@ window.addEventListener('sourcechange', e => {
     e.preventDefault();
 });
 
+if ('print' in qs) {
+  const iframe = document.createElement('iframe');
+  iframe.src = '/confetti/sandbox.html?frfr';
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+}
+
+window.addEventListener('sourcechange', e => {
+  const changedPath = new URL(e.detail, location).pathname;
+  if (changedPath == '/confetti.json')
+    e.preventDefault();
+});
+
 </script>

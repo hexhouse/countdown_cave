@@ -18,7 +18,7 @@ function calculateFillPercentage() {
   const seconds = now.getSeconds();
 
   // Start time is 8 PM (20:00)
-  const startHour = 19.5;
+  const startHour = 20;
   // End time is midnight (24:00)
   const endHour = 24;
 

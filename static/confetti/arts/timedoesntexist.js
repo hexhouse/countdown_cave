@@ -20,7 +20,10 @@ ctx.fillText(" TIME DOES NOT EXIST ", width / 2 , height/2.5 + textSize/4);
 
 const textSize2 = height * 0.2;
 ctx.font = `${textSize2}px "skanus"`;
-ctx.fillText(`Printed ${Math.floor(timeLeft)} seconds before 2025`, width  - width/3.4, height - (height/4));
+if (timeLeft > 0)
+  ctx.fillText(`Printed ${timeLeft > 3600 ? 'hours' : timeLeft > 60 ? 'minutes' : 'seconds' } before 2025`, width  - width/3.4, height - (height/4));
+else
+  ctx.fillText(`Printed in 2025`, width  - width/3.4, height - (height/4));
 
 // todos
 // make it randomly white on black or black on white

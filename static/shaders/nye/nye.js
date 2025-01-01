@@ -74,7 +74,7 @@ return () => {
   const m = Math.floor(left / 60 % 60);
   const s = Math.floor(left % 60);
   const str = (h||m)
-    ? `${h.toFixed(0)}${m?':'+m.toFixed(0).padStart(2, '0'):''}:${s.toFixed(0).padStart(2, '0')}`
+    ? `${h?h.toFixed(0)+':':''}${m.toFixed(0).padStart(2, '0')}:${s.toFixed(0).padStart(2, '0')}`
     : s;
 
   ctx.params.nyeCountdownFade.value = state.ambientCountdown ? 1 : 0;

@@ -3,7 +3,7 @@
  fitp
  # p .x 1 + 2 balmod p .y 0.75 2 / + 0.75 balmod p .z vec3 =p
  p [ t 100 * sin t 120 * sin 1 ] 0.02 param'nyeCountdownShake * * + =p
- p 1 0.4 param'nyeCountdownFade mix * =p 
+ p 1 0.6 param'nyeCountdownFade mix * =p 
  p [ 0. -0.1 0 ] + =p
  fb'nye_count uv tex .r
  } param'nyeCountdownFade *

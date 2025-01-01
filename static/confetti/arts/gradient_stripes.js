@@ -4,15 +4,23 @@
 setHeight(width * 0.1);
 
 shader((x, y) => {
-  return (x + now * 0.3 + y * 0.1) * 10 % 1;
+  let ret = ((x + now * 0.3 + y * 0.1) * 10 % 1);
+  ret -= 0.2 * ((x + now * 0.3 + y * -0.2 * Math.sin(now) * 2 + now * -0.1) * 10 % 1);
+  return ret;
 });
 
-ctx.fillStyle = "black";
-ctx.fillRect(width  - width/1.98, height - (height/2),  width  - width/2.6, height - (height/4.))
+const textSize = width * 0.03;
+const padding = width * 0.01;
 
-const textSize = height * 0.35;
 ctx.font = `${textSize}px "skanus"`;
-ctx.textAlign = 'center';
-ctx.textBaseline = 'middle';
+ctx.textAlign = 'right';
+ctx.textBaseline = 'bottom';
+
+const textToPrint = `Printed ${Math.floor(timeLeft)} seconds before 2025`;
+const tw = ctx.measureText(textToPrint).width;
+
+ctx.fillStyle = "black";
+ctx.fillRect(width - tw - padding * 2, height - textSize * 1.5, tw + padding * 2, textSize * 1.5);
+
 ctx.fillStyle = "white";
-ctx.fillText(`Printed ${Math.floor(timeLeft)} seconds before 2025`, width  - width/4, height - (height/4.));
+ctx.fillText(`Printed ${Math.floor(timeLeft)} seconds before 2025`, width - padding, height - padding / 2);

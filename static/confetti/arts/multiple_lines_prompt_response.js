@@ -44,9 +44,15 @@ for (let i = 0; i < responseLines.length; i++) {
 
 setHeight(yPosition + responseTextSize/2 + padding);
 
-const smallTextSize = width * 0.028;
-ctx.font = `${smallTextSize}px "skanus"`;
-ctx.textAlign = 'center';
-ctx.textBaseline = 'middle';
+ctx.font = `${textSize}px "skanus"`;
+ctx.textAlign = 'right';
+ctx.textBaseline = 'bottom';
 
-ctx.fillText(`Printed ${Math.floor(timeLeft)} seconds before 2025`, width  - width/5, height - (width/55));
+const textToPrint = `Printed ${Math.floor(timeLeft)} seconds before 2025`;
+const tw = ctx.measureText(textToPrint).width;
+
+ctx.fillStyle = "black";
+ctx.fillRect(width - tw - padding * 2, height - textSize * 1.5, tw + padding * 2, textSize * 1.5);
+
+ctx.fillStyle = "white";
+ctx.fillText(`Printed ${Math.floor(timeLeft)} seconds before 2025`, width - padding, height - padding / 2);
