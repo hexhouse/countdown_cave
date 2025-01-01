@@ -425,9 +425,9 @@ let jsonData = [];
 
 const reloadConfetti = async () => {
   const r = await fetch('/confetti.json', { cache: 'reload' });
-  const data = await r.text().split('\n');
+  const data = await r.text();
   jsonData.length = 0;
-  for (const line of data) {
+  for (const line of data.split('\n')) {
     try {
       jsonData.push(JSON.parse(line));
     } catch (e) {
