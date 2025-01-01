@@ -1,6 +1,8 @@
 #!/bin/sh
 
 cd app
+npm i
+
 while :; do
-  npx --yes electron --no-sandbox .
+  npx electron --no-sandbox .
 done

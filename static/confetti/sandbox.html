@@ -421,12 +421,19 @@ function getWeightedRandomEntry(data) {
 
 window.promptText = "What is a secret you haven't told anyone this year??";
 window.responseText = "I found nudes my father took of my mother before I was born!";
-let jsonData;
+let jsonData = [];
 
 const reloadConfetti = async () => {
   const r = await fetch('/confetti.json', { cache: 'reload' });
-  const data = await r.json();
-  jsonData = data;
+  const data = await r.text().split('\n');
+  jsonData.length = 0;
+  for (const line of data) {
+    try {
+      jsonData.push(JSON.parse(line));
+    } catch (e) {
+      console.error(e);
+    }
+  }
   updatePromptAndResponse(); // Initial update
 };
 
