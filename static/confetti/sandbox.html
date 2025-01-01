@@ -441,7 +441,7 @@ function updatePromptAndResponse() {
   if (!jsonData) return;
   const selectedEntry = getWeightedRandomEntry(jsonData);
   window.promptText = selectedEntry.prompt;
-  window.responseText = selectedEntry.response;
+  window.responseText = selectedEntry.reply;
   console.log('Selected entry:', selectedEntry);
   // draw();
 }
